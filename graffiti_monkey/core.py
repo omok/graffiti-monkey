@@ -108,7 +108,7 @@ class GraffitiMonkey(object):
             log.info('Using volume list from cli/config file')
 
             # Max of 200 filters in a request
-            for chunk in (self._volumes_to_tag[n:n+200] for n in xrange(0, len(self._volumes_to_tag), 200)):
+            for chunk in (self._volumes_to_tag[n:n+200] for n in range(0, len(self._volumes_to_tag), 200)):
                 chunk_volumes = self._conn.get_all_volumes(
                         filters = { 'volume-id': chunk }
                         )
@@ -164,10 +164,10 @@ class GraffitiMonkey(object):
             for attempt in range(5):
                 try:
                     self.tag_volume(volume, instances)
-                except boto.exception.EC2ResponseError, e:
+                except boto.exception.EC2ResponseError as e:
                     log.error("Encountered Error %s on volume %s", e.error_code, volume.id)
                     break
-                except boto.exception.BotoServerError, e:
+                except boto.exception.BotoServerError as e:
                     log.error("Encountered Error %s on volume %s, waiting %d seconds then retrying", e.error_code, volume.id, attempt)
                     time.sleep(attempt)
                 else:
@@ -253,7 +253,7 @@ class GraffitiMonkey(object):
         extra_volume_ids = [id for id in all_volume_ids if id not in volumes]
 
         ''' Fetch any extra volumes that weren't carried over from tag_volumes() (if any) '''
-        for chunk in (extra_volume_ids[n:n+200] for n in xrange(0, len(extra_volume_ids), 200)):
+        for chunk in (extra_volume_ids[n:n+200] for n in range(0, len(extra_volume_ids), 200)):
             extra_volumes = self._conn.get_all_volumes(
                     filters = { 'volume-id': chunk }
                     )
@@ -271,10 +271,10 @@ class GraffitiMonkey(object):
             for attempt in range(5):
                 try:
                     self.tag_snapshot(snapshot, volumes)
-                except boto.exception.EC2ResponseError, e:
+                except boto.exception.EC2ResponseError:
                     log.error("Encountered Error %s on snapshot %s", e.error_code, snapshot.id)
                     break
-                except boto.exception.BotoServerError, e:
+                except boto.exception.BotoServerError:
                     log.error("Encountered Error %s on snapshot %s, waiting %d seconds then retrying", e.error_code, snapshot.id, attempt)
                     time.sleep(attempt)
                 else:
@@ -324,7 +324,8 @@ class GraffitiMonkey(object):
 
         delta_tags = {}
 
-        for tag_key, tag_value in tags.iteritems():
+        log.info('There are %s tags', len(tags))
+        for tag_key, tag_value in tags.items():
             if not tag_key in resource.tags or resource.tags[tag_key] != tag_value:
                 delta_tags[tag_key] = tag_value
 
@@ -344,18 +345,5 @@ class Logging(object):
     def configure(self, verbosity = None):
         ''' Configure the logging format and verbosity '''
 
-        # Configure our logging output
-        if verbosity >= 2:
-            logging.basicConfig(level=logging.DEBUG, format=self._log_detailed_format, datefmt='%Y-%m-%d %H:%M:%S')
-        elif verbosity >= 1:
-            logging.basicConfig(level=logging.INFO, format=self._log_detailed_format, datefmt='%Y-%m-%d %H:%M:%S')
-        else:
-            logging.basicConfig(level=logging.INFO, format=self._log_simple_format, datefmt='%Y-%m-%d %H:%M:%S')
-
-        # Configure Boto's logging output
-        if verbosity >= 4:
-            logging.getLogger('boto').setLevel(logging.DEBUG)
-        elif verbosity >= 3:
-            logging.getLogger('boto').setLevel(logging.INFO)
-        else:
-            logging.getLogger('boto').setLevel(logging.CRITICAL)
+        logging.basicConfig(level=logging.INFO, format=self._log_simple_format, datefmt='%Y-%m-%d %H:%M:%S')
+        logging.getLogger('boto').setLevel(logging.INFO)

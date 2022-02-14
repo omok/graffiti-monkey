@@ -16,9 +16,8 @@ import argparse
 import logging
 import sys
 
-from graffiti_monkey.core import GraffitiMonkey, Logging
-from graffiti_monkey import __version__
-from graffiti_monkey.exceptions import GraffitiMonkeyException
+from core import GraffitiMonkey, Logging
+from exceptions import GraffitiMonkeyException
 
 from boto.utils import get_instance_metadata
 
@@ -33,14 +32,14 @@ class GraffitiMonkeyCli(object):
         self.profile = None
         self.monkey = None
         self.args = None
-        self.config = {"_instance_tags_to_propagate": ['Name'],
-                       "_volume_tags_to_propagate": ['Name', 'instance_id', 'device'],
+        self.config = {"_instance_tags_to_propagate": ['Application','BusinessUnit','Project','Environment','Component'],
+                       "_volume_tags_to_propagate": ['Name', 'instance_id', 'device','Application','BusinessUnit','Project','Environment','Component'],
                        "_volume_tags_to_be_set": [],
                        "_snapshot_tags_to_be_set": [],
                        "_instance_filter": [],
                        }
         self.dryrun = False
-        self.append = False
+        self.append = True
         self.volumes = None
         self.snapshots = None
         self.instancefilter = None
@@ -67,8 +66,6 @@ class GraffitiMonkeyCli(object):
                             help='the profile (credentials) to use to connect to EC2')
         parser.add_argument('--verbose', '-v', action='count',
                             help='enable verbose output (-vvv for more)')
-        parser.add_argument('--version', action='version', version='%(prog)s ' + __version__,
-                            help='display version number and exit')
         parser.add_argument('--config', '-c', nargs="?", type=argparse.FileType('r'),
                         default=None, help="Give a yaml configuration file")
         parser.add_argument('--dryrun', action='store_true',
@@ -222,3 +219,6 @@ class GraffitiMonkeyCli(object):
 def run():
     cli = GraffitiMonkeyCli()
     cli.run()
+
+if __name__ == "__main__":
+    run()
